@@ -1,0 +1,174 @@
+/* ============================================================
+   智慧停车场管理系统 V2.1 - 全局深色科技风设计系统
+   深蓝渐变背景 + 玻璃拟态面板 + 品牌青蓝点缀
+   ============================================================ */
+
+:root {
+  /* 品牌色 */
+  --brand: #38bdf8;
+  --brand-2: #818cf8;
+  --brand-glow: rgba(56, 189, 248, 0.35);
+  --warn: #fbbf24;
+  --ok: #34d399;
+  --danger: #f87171;
+
+  /* 背景体系 */
+  --bg-app: #0b1220;
+  --bg-content: #0d1b2e;
+  --bg-panel: rgba(23, 42, 74, 0.5);
+  --bg-card: #11223c;
+  --bg-card-hover: #16304f;
+
+  /* 边框与文字 */
+  --border-line: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(56, 189, 248, 0.3);
+  --text-1: #e2e8f0;
+  --text-2: #94a3b8;
+  --text-3: #64748b;
+}
+
+html.dark {
+  --el-color-primary: #38bdf8;
+  --el-color-primary-light-3: #0ea5e9;
+  --el-color-primary-light-5: #0284c7;
+  --el-color-primary-light-7: rgba(56, 189, 248, 0.35);
+  --el-color-primary-light-8: rgba(56, 189, 248, 0.22);
+  --el-color-primary-light-9: rgba(56, 189, 248, 0.12);
+  --el-color-primary-dark-2: #7dd3fc;
+
+  --el-bg-color: #0f1e36;
+  --el-bg-color-overlay: #132542;
+  --el-bg-color-page: #0b1220;
+  --el-fill-color-blank: #0f1e36;
+  --el-fill-color-light: #132542;
+  --el-fill-color-lighter: #16304f;
+  --el-fill-color-extra-light: #1b3a5f;
+
+  --el-border-color: rgba(148, 163, 184, 0.28);
+  --el-border-color-light: rgba(148, 163, 184, 0.18);
+  --el-border-color-lighter: rgba(148, 163, 184, 0.12);
+  --el-border-color-extra-light: rgba(148, 163, 184, 0.08);
+
+  --el-text-color-primary: #e2e8f0;
+  --el-text-color-regular: #cbd5e1;
+  --el-text-color-secondary: #94a3b8;
+  --el-text-color-placeholder: #64748b;
+  --el-text-color-disabled: #475569;
+
+  --el-mask-color: rgba(5, 12, 24, 0.72);
+  --el-box-shadow-light: 0 12px 40px rgba(2, 8, 20, 0.55);
+}
+
+html,
+body {
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+
+/* 全局滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4d7a;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 深色环境下 Element 组件微调 */
+html.dark .el-card {
+  background: var(--bg-card);
+  border-color: var(--border-line);
+}
+
+html.dark .el-table {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: rgba(23, 42, 74, 0.6);
+  --el-table-border-color: rgba(148, 163, 184, 0.12);
+  --el-table-row-hover-bg-color: rgba(56, 189, 248, 0.08);
+}
+
+html.dark .el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-button-bg-color: transparent;
+}
+
+html.dark .el-dialog {
+  background: #0f1e36;
+  border: 1px solid var(--border-line);
+}
+
+html.dark .el-message-box {
+  background: #0f1e36;
+}
+
+html.dark .el-dropdown-menu {
+  background: #132542;
+}
+
+html.dark .el-popover {
+  background: #132542;
+}
+
+/* 通用深色卡片容器 */
+.panel-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-line);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+}
+
+/* 页面通用标题条 */
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+/* 卡片头图标标题（el-card header 内） */
+.header-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.page-head-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(129, 140, 248, 0.22));
+  color: var(--brand);
+  font-size: 18px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.page-head-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.page-head-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* 数字强调 */
+.num-strong {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,2939 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "智慧停车场管理系统 API",
+    "version": "2.2.0",
+    "description": "V2.2 在 V2.1 基础上补齐：RBAC 角色权限、提示注入防护、RAG 知识库问答、AI 调用留痕与人工复核反馈。\n\n所有业务接口统一返回 `{code, msg, data}`；认证方式为 `Authorization: Bearer <token>`。"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "本地开发环境"
+    }
+  ],
+  "tags": [
+    {
+      "name": "AI 能力"
+    },
+    {
+      "name": "停车业务"
+    },
+    {
+      "name": "停车记录"
+    },
+    {
+      "name": "操作日志"
+    },
+    {
+      "name": "收费规则"
+    },
+    {
+      "name": "数据导出"
+    },
+    {
+      "name": "数据统计"
+    },
+    {
+      "name": "月租管理"
+    },
+    {
+      "name": "用户管理"
+    },
+    {
+      "name": "角色权限"
+    },
+    {
+      "name": "认证"
+    },
+    {
+      "name": "车位预约"
+    },
+    {
+      "name": "车牌识别"
+    },
+    {
+      "name": "黑名单"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {}
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/ai/ask": {
+      "post": {
+        "summary": "基于知识库的 RAG 问答，答案带引用来源。",
+        "operationId": "ai.ask_post",
+        "tags": [
+          "AI 能力"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`ai:ask`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/calls": {
+      "get": {
+        "summary": "查看大模型调用留痕（模型、提示词版本、耗时、错误）。",
+        "operationId": "ai.list_calls_get",
+        "tags": [
+          "AI 能力"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`ai:feedback:read`"
+      }
+    },
+    "/api/ai/feedback": {
+      "post": {
+        "summary": "提交一条 AI 输出的人工复核记录（幻觉案例沉淀）。",
+        "operationId": "ai.create_feedback_post",
+        "tags": [
+          "AI 能力"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "查看已沉淀的 AI 复核案例，可直接用于实验报告。",
+        "operationId": "ai.list_feedback_get",
+        "tags": [
+          "AI 能力"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`ai:feedback:read`"
+      }
+    },
+    "/api/ai/reindex": {
+      "post": {
+        "summary": "重建知识库向量索引（修改 knowledge/*.md 后调用）。",
+        "operationId": "ai.reindex_post",
+        "tags": [
+          "AI 能力"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`ai:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/status": {
+      "get": {
+        "summary": "查询大模型与知识库的当前状态。",
+        "operationId": "ai.status_get",
+        "tags": [
+          "AI 能力"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "summary": "POST /api/auth/change-password",
+        "operationId": "auth.change_password_post",
+        "tags": [
+          "认证"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/info": {
+      "get": {
+        "summary": "GET /api/auth/info",
+        "operationId": "auth.get_info_get",
+        "tags": [
+          "认证"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "POST /api/auth/login",
+        "operationId": "auth.login_post",
+        "tags": [
+          "认证"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blacklist/": {
+      "get": {
+        "summary": "GET /api/blacklist/",
+        "operationId": "blacklist.list_blacklist_get",
+        "tags": [
+          "黑名单"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "POST /api/blacklist/",
+        "operationId": "blacklist.create_blacklist_post",
+        "tags": [
+          "黑名单"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`blacklist:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blacklist/<int:entry_id>": {
+      "put": {
+        "summary": "PUT /api/blacklist/<int:entry_id>",
+        "operationId": "blacklist.update_blacklist_put",
+        "tags": [
+          "黑名单"
+        ],
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 entry_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`blacklist:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/blacklist/<int:entry_id>",
+        "operationId": "blacklist.delete_blacklist_delete",
+        "tags": [
+          "黑名单"
+        ],
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 entry_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`blacklist:manage`"
+      }
+    },
+    "/api/blacklist/check": {
+      "get": {
+        "summary": "入场业务联动：校验车牌是否被拉黑。",
+        "operationId": "blacklist.check_blacklist_get",
+        "tags": [
+          "黑名单"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/export/monthly": {
+      "get": {
+        "summary": "导出月租台账 CSV。",
+        "operationId": "export.export_monthly_get",
+        "tags": [
+          "数据导出"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`export:data`"
+      }
+    },
+    "/api/export/records": {
+      "get": {
+        "summary": "导出停车记录 CSV，支持与记录页一致的筛选条件。",
+        "operationId": "export.export_records_get",
+        "tags": [
+          "数据导出"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`export:data`"
+      }
+    },
+    "/api/fee-rules/": {
+      "get": {
+        "summary": "GET /api/fee-rules/",
+        "operationId": "fee_rules.list_rules_get",
+        "tags": [
+          "收费规则"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "POST /api/fee-rules/",
+        "operationId": "fee_rules.create_rule_post",
+        "tags": [
+          "收费规则"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`fee:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fee-rules/<int:rule_id>": {
+      "put": {
+        "summary": "PUT /api/fee-rules/<int:rule_id>",
+        "operationId": "fee_rules.update_rule_put",
+        "tags": [
+          "收费规则"
+        ],
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 rule_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`fee:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/fee-rules/<int:rule_id>",
+        "operationId": "fee_rules.delete_rule_delete",
+        "tags": [
+          "收费规则"
+        ],
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 rule_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`fee:manage`"
+      }
+    },
+    "/api/logs/": {
+      "get": {
+        "summary": "GET /api/logs/",
+        "operationId": "logs.list_logs_get",
+        "tags": [
+          "操作日志"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`log:read`"
+      }
+    },
+    "/api/lpr/mode": {
+      "get": {
+        "summary": "GET /api/lpr/mode",
+        "operationId": "lpr.get_mode_get",
+        "tags": [
+          "车牌识别"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/lpr/recognize": {
+      "post": {
+        "summary": "POST /api/lpr/recognize",
+        "operationId": "lpr.recognize_post",
+        "tags": [
+          "车牌识别"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/monthly/": {
+      "get": {
+        "summary": "列表查询，支持按车牌/状态筛选。",
+        "operationId": "monthly.list_subscribers_get",
+        "tags": [
+          "月租管理"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "POST /api/monthly/",
+        "operationId": "monthly.create_subscriber_post",
+        "tags": [
+          "月租管理"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`monthly:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/monthly/<int:sub_id>": {
+      "put": {
+        "summary": "PUT /api/monthly/<int:sub_id>",
+        "operationId": "monthly.update_subscriber_put",
+        "tags": [
+          "月租管理"
+        ],
+        "parameters": [
+          {
+            "name": "sub_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 sub_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`monthly:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/monthly/<int:sub_id>",
+        "operationId": "monthly.delete_subscriber_delete",
+        "tags": [
+          "月租管理"
+        ],
+        "parameters": [
+          {
+            "name": "sub_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 sub_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`monthly:manage`"
+      }
+    },
+    "/api/monthly/<int:sub_id>/renew": {
+      "post": {
+        "summary": "续费：在现有到期日基础上顺延，或直接指定新的到期日期。",
+        "operationId": "monthly.renew_subscriber_post",
+        "tags": [
+          "月租管理"
+        ],
+        "parameters": [
+          {
+            "name": "sub_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 sub_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`monthly:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/monthly/check": {
+      "get": {
+        "summary": "查询车牌是否为月租车辆（入场/离场业务联动使用）。",
+        "operationId": "monthly.check_subscriber_get",
+        "tags": [
+          "月租管理"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/parking/<int:record_id>/pay": {
+      "post": {
+        "summary": "模拟在线支付：将待支付记录置为已支付。",
+        "operationId": "parking.pay_record_post",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 record_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`parking:operate`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/enter": {
+      "post": {
+        "summary": "POST /api/parking/enter",
+        "operationId": "parking.vehicle_enter_post",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`parking:operate`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/exit": {
+      "post": {
+        "summary": "POST /api/parking/exit",
+        "operationId": "parking.vehicle_exit_post",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`parking:operate`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/exit-preview": {
+      "post": {
+        "summary": "POST /api/parking/exit-preview",
+        "operationId": "parking.exit_preview_post",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`parking:operate`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/parked": {
+      "get": {
+        "summary": "GET /api/parking/parked",
+        "operationId": "parking.get_parked_vehicles_get",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/parking/spaces": {
+      "get": {
+        "summary": "GET /api/parking/spaces",
+        "operationId": "parking.get_spaces_get",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "PUT /api/parking/spaces",
+        "operationId": "parking.update_spaces_put",
+        "tags": [
+          "停车业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`space:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/": {
+      "get": {
+        "summary": "GET /api/records/",
+        "operationId": "records.list_records_get",
+        "tags": [
+          "停车记录"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/records/<int:record_id>": {
+      "get": {
+        "summary": "GET /api/records/<int:record_id>",
+        "operationId": "records.get_record_get",
+        "tags": [
+          "停车记录"
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 record_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/records/<int:record_id>/remark": {
+      "put": {
+        "summary": "PUT /api/records/<int:record_id>/remark",
+        "operationId": "records.update_remark_put",
+        "tags": [
+          "停车记录"
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 record_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/": {
+      "get": {
+        "summary": "GET /api/reservations/",
+        "operationId": "reservation.list_reservations_get",
+        "tags": [
+          "车位预约"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "POST /api/reservations/",
+        "operationId": "reservation.create_reservation_post",
+        "tags": [
+          "车位预约"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`reservation:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/<int:res_id>": {
+      "delete": {
+        "summary": "DELETE /api/reservations/<int:res_id>",
+        "operationId": "reservation.delete_reservation_delete",
+        "tags": [
+          "车位预约"
+        ],
+        "parameters": [
+          {
+            "name": "res_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 res_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`reservation:manage`"
+      }
+    },
+    "/api/reservations/<int:res_id>/status": {
+      "put": {
+        "summary": "变更预约状态：pending->arrived(已入场) / cancelled(取消) / expired(过期)。",
+        "operationId": "reservation.update_status_put",
+        "tags": [
+          "车位预约"
+        ],
+        "parameters": [
+          {
+            "name": "res_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 res_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/check": {
+      "get": {
+        "summary": "入场业务联动：校验车牌是否在预约时段内。",
+        "operationId": "reservation.check_reservation_get",
+        "tags": [
+          "车位预约"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/roles/": {
+      "get": {
+        "summary": "角色列表，附带每个角色已授予的权限编码。",
+        "operationId": "roles.list_roles_get",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`role:manage`"
+      },
+      "post": {
+        "summary": "新增自定义角色。",
+        "operationId": "roles.create_role_post",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`role:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles/<int:role_id>": {
+      "put": {
+        "summary": "修改角色名称与描述。",
+        "operationId": "roles.update_role_put",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 role_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`role:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除自定义角色（内置角色与在用角色不可删）。",
+        "operationId": "roles.delete_role_delete",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 role_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`role:manage`"
+      }
+    },
+    "/api/roles/<int:role_id>/permissions": {
+      "put": {
+        "summary": "整体替换角色的权限集合。",
+        "operationId": "roles.set_role_permissions_put",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 role_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`role:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles/me": {
+      "get": {
+        "summary": "当前登录用户的角色与权限，前端据此控制菜单与按钮。",
+        "operationId": "roles.my_permissions_get",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/roles/permissions": {
+      "get": {
+        "summary": "权限字典，按业务分组返回，供前端渲染权限矩阵。",
+        "operationId": "roles.list_permissions_get",
+        "tags": [
+          "角色权限"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`role:manage`"
+      }
+    },
+    "/api/stats/ai-advice": {
+      "get": {
+        "summary": "GET /api/stats/ai-advice",
+        "operationId": "stats.ai_advice_get",
+        "tags": [
+          "数据统计"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`ai:advice`"
+      }
+    },
+    "/api/stats/flow": {
+      "get": {
+        "summary": "GET /api/stats/flow",
+        "operationId": "stats.traffic_flow_get",
+        "tags": [
+          "数据统计"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/stats/income": {
+      "get": {
+        "summary": "GET /api/stats/income",
+        "operationId": "stats.income_stats_get",
+        "tags": [
+          "数据统计"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/stats/overview": {
+      "get": {
+        "summary": "GET /api/stats/overview",
+        "operationId": "stats.overview_get",
+        "tags": [
+          "数据统计"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/": {
+      "get": {
+        "summary": "GET /api/users/",
+        "operationId": "users.list_users_get",
+        "tags": [
+          "用户管理"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`user:manage`"
+      },
+      "post": {
+        "summary": "POST /api/users/",
+        "operationId": "users.create_user_post",
+        "tags": [
+          "用户管理"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`user:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/<int:user_id>": {
+      "put": {
+        "summary": "PUT /api/users/<int:user_id>",
+        "operationId": "users.update_user_put",
+        "tags": [
+          "用户管理"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 user_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验失败"
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`user:manage`",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/users/<int:user_id>",
+        "operationId": "users.delete_user_delete",
+        "tags": [
+          "用户管理"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "路径参数 user_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "业务处理完成（具体成功或业务失败以响应体 code 为准）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未提供 Token 或 Token 失效"
+          },
+          "403": {
+            "description": "权限不足"
+          },
+          "422": {
+            "description": "业务规则不满足（如车牌识别失败）"
+          },
+          "429": {
+            "description": "请求过于频繁（AI 接口限流）"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "所需权限：`user:manage`"
+      }
+    }
+  }
+}
